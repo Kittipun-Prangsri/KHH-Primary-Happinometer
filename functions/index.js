@@ -29,7 +29,7 @@ app.get('/auth/provider-redirect', (req, res) => {
   try {
     const healthIdUrl = requireEnv('HEALTH_ID_URL')
     const clientId = requireEnv('HEALTH_CLIENT_ID')
-    const redirectUri = requireEnv('PROVIDER_REDIRECT_URI')
+    const redirectUri = req.query.redirect_uri || process.env.PROVIDER_REDIRECT_URI || 'https://khh-primary-happinometer.web.app'
 
     const url =
       `${healthIdUrl}/oauth/redirect?client_id=${encodeURIComponent(clientId)}` +
@@ -50,7 +50,7 @@ app.get('/auth/provider-redirect', (req, res) => {
 
 app.post('/auth/provider-login', async (req, res) => {
   try {
-    const { code } = req.body || {}
+    const { code, redirect_uri } = req.body || {}
     if (!code) {
       return res.status(400).json({ error: 'missing_code' })
     }
@@ -71,7 +71,7 @@ app.post('/auth/provider-login', async (req, res) => {
       const providerIdUrl = requireEnv('PROVIDER_ID_URL')
       const healthClientId = requireEnv('HEALTH_CLIENT_ID')
       const providerClientId = requireEnv('PROVIDER_CLIENT_ID')
-      const redirectUri = requireEnv('PROVIDER_REDIRECT_URI')
+      const redirectUri = redirect_uri || process.env.PROVIDER_REDIRECT_URI || 'https://khh-primary-happinometer.web.app'
       const healthClientSecret = (HEALTH_CLIENT_SECRET.value && HEALTH_CLIENT_SECRET.value()) || process.env.HEALTH_CLIENT_SECRET
       const providerClientSecret = (PROVIDER_CLIENT_SECRET.value && PROVIDER_CLIENT_SECRET.value()) || process.env.PROVIDER_CLIENT_SECRET
       if (!healthClientSecret || !providerClientSecret) {
