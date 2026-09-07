@@ -60,6 +60,7 @@ export default function App() {
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const topRef = useRef(null)
+  const surveyCardRef = useRef(null)
 
   const fieldValues = { department, personnelType, ...answers }
 
@@ -76,6 +77,15 @@ export default function App() {
 
   const scrollToTop = () => topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 
+  const scrollToSurveyCard = () => {
+    if (surveyCardRef.current) {
+      const rect = surveyCardRef.current.getBoundingClientRect()
+      if (rect.top < 0 || window.innerWidth < 768) {
+        surveyCardRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
+    }
+  }
+
   const isCategoryComplete = (key) =>
     CATEGORY_REQUIRED_IDS[key].every((id) => fieldValues[id] !== undefined && fieldValues[id] !== '')
 
@@ -90,7 +100,7 @@ export default function App() {
 
   const handleSelectCategory = (key) => {
     setActiveCategory(key)
-    scrollToTop()
+    scrollToSurveyCard()
   }
 
   const currentIndex = CATEGORY_ORDER.indexOf(activeCategory)
@@ -98,19 +108,19 @@ export default function App() {
 
   const handleNext = () => {
     if (!validateCategory(activeCategory)) {
-      scrollToTop()
+      scrollToSurveyCard()
       return
     }
     if (!isLastCategory) {
       setActiveCategory(CATEGORY_ORDER[currentIndex + 1])
-      scrollToTop()
+      scrollToSurveyCard()
     }
   }
 
   const handleBack = () => {
     if (currentIndex > 0) {
       setActiveCategory(CATEGORY_ORDER[currentIndex - 1])
-      scrollToTop()
+      scrollToSurveyCard()
     }
   }
 
@@ -178,7 +188,7 @@ export default function App() {
           <HeroBanner />
           <ProgressBar answeredCount={answeredCount} totalCount={ALL_QUESTION_IDS.length} />
 
-          <div className="grid md:grid-cols-[240px_1fr] gap-5 items-start">
+          <div ref={surveyCardRef} className="grid md:grid-cols-[240px_1fr] gap-5 items-start scroll-mt-20">
             <CategorySidebar activeKey={activeCategory} completedKeys={completedKeys} onSelect={handleSelectCategory} />
 
             <SurveyCard icon={header.icon} title={header.title} subtitle={header.subtitle}>

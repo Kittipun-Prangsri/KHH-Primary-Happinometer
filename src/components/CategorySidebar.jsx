@@ -10,6 +10,11 @@ const ICONS = {
 }
 
 export default function CategorySidebar({ activeKey, completedKeys, onSelect }) {
+  const handleClick = (e, key) => {
+    e.preventDefault()
+    onSelect(key)
+  }
+
   return (
     <>
       {/* Desktop vertical sidebar */}
@@ -26,7 +31,7 @@ export default function CategorySidebar({ activeKey, completedKeys, onSelect }) 
             <button
               key={cat.key}
               type="button"
-              onClick={() => onSelect(cat.key)}
+              onClick={(e) => handleClick(e, cat.key)}
               className={`w-full flex items-center gap-3 rounded-xl px-3.5 py-3 text-left text-sm transition-all duration-200 ${
                 isActive
                   ? 'bg-gradient-to-r from-cyan-50/90 via-teal-50/80 to-purple-50/90 text-cyan-900 font-semibold ring-1 ring-cyan-300/80 shadow-sm translate-x-0.5'
@@ -59,7 +64,7 @@ export default function CategorySidebar({ activeKey, completedKeys, onSelect }) 
             <button
               key={cat.key}
               type="button"
-              onClick={() => onSelect(cat.key)}
+              onClick={(e) => handleClick(e, cat.key)}
               className={`shrink-0 flex items-center gap-1.5 rounded-full border px-3.5 py-2 text-xs font-semibold whitespace-nowrap transition-all ${
                 isActive
                   ? 'bg-gradient-to-r from-cyan-500 to-purple-600 border-transparent text-white shadow-md shadow-cyan-500/20 scale-[1.02]'
