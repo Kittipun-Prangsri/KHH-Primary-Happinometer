@@ -24,7 +24,7 @@ export default function Footer() {
         </p>
 
         <p className="text-[10px] text-slate-400">
-          © {new Date().getFullYear()} KHH Primary Happinometer · กลุ่มงานบริการด้านปฐมภูมิและองค์รวม โรงพยาบาลคลองหาด
+          © {new Date().getFullYear()} KHH Primary Happinometer · โรงพยาบาลคลองหาด กระทรวงสาธารณสุข จังหวัดสระแก้ว
         </p>
       </div>
     </footer>

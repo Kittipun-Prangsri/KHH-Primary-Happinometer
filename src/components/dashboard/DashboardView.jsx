@@ -11,7 +11,7 @@ export default function DashboardView() {
       <div className="rounded-3xl bg-gradient-to-br from-fuchsia-600 via-purple-600 to-indigo-700 px-6 py-6 sm:px-8 sm:py-7 shadow-lg shadow-purple-300/50">
         <h1 className="text-lg sm:text-2xl font-bold text-white">แผงควบคุมผู้บริหาร (Dashboard)</h1>
         <p className="text-sm text-fuchsia-50/90 mt-1">
-          สรุปผลแบบประเมินความสุขบุคลากร กลุ่มงานบริการด้านปฐมภูมิและองค์รวม · ปีงบประมาณ พ.ศ. 2569
+          สรุปผลแบบประเมินความสุขบุคลากร โรงพยาบาลคลองหาด · กระทรวงสาธารณสุข จังหวัดสระแก้ว · ปีงบประมาณ พ.ศ. 2569
           <span className="ml-1 opacity-75">(ข้อมูลตัวอย่าง / Mock Data)</span>
         </p>
       </div>

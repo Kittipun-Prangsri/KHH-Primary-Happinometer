@@ -18,7 +18,7 @@ export default function TopNavbar({ view, onToggleView }) {
                 ปฐมภูมิ
               </span>
             </div>
-            <p className="text-[11px] text-slate-500 truncate">กลุ่มงานบริการด้านปฐมภูมิและองค์รวม</p>
+            <p className="text-[11px] text-slate-500 truncate">กระทรวงสาธารณสุข จังหวัดสระแก้ว</p>
           </div>
         </div>
 

@@ -27,7 +27,7 @@ export default function HeroBanner() {
         <br className="sm:hidden" /> (HAPPINOMETER)
       </h1>
       <p className="relative text-sm sm:text-base text-cyan-50/90 font-medium mt-2 max-w-xl mx-auto">
-        กลุ่มงานบริการด้านปฐมภูมิและองค์รวม โรงพยาบาลคลองหาด
+        โรงพยาบาลคลองหาด กระทรวงสาธารณสุข จังหวัดสระแก้ว
       </p>
 
       {/* Fiscal Year & Hospital Badge */}
