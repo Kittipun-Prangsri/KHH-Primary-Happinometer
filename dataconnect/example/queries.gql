@@ -1,0 +1,133 @@
+mutation CreateAnswer($data: Answer_Data!) @auth(level: USER) {
+  answer_insert(data: $data)
+}
+
+mutation UpdateAnswer($id: UUID!, $data: Answer_Data!) @auth(level: USER) {
+  answer_update(id: $id, data: $data)
+}
+
+mutation DeleteAnswer($id: UUID!) @auth(level: USER) {
+  answer_delete(id: $id)
+}
+
+query GetAnswer($id: UUID!) @auth(level: USER) {
+  answer(id: $id) {
+    value
+    response { id }
+    question { id }
+  }
+}
+
+query ListAnswers @auth(level: USER) {
+  answers {
+    value
+    response { id }
+  }
+}
+
+mutation CreateAssessment($data: Assessment_Data!) @auth(level: USER) {
+  assessment_insert(data: $data)
+}
+
+mutation UpdateAssessment($id: UUID!, $data: Assessment_Data!) @auth(level: USER) {
+  assessment_update(id: $id, data: $data)
+}
+
+mutation DeleteAssessment($id: UUID!) @auth(level: USER) {
+  assessment_delete(id: $id)
+}
+
+query GetAssessment($id: UUID!) @auth(level: PUBLIC, insecureReason: "Assessments are public documents.") {
+  assessment(id: $id) {
+    title
+    description
+    deadline
+  }
+}
+
+query ListAssessments @auth(level: PUBLIC, insecureReason: "Assessments are public documents.") {
+  assessments {
+    title
+    isActive
+  }
+}
+
+mutation CreateQuestion($data: Question_Data!) @auth(level: USER) {
+  question_insert(data: $data)
+}
+
+mutation UpdateQuestion($id: UUID!, $data: Question_Data!) @auth(level: USER) {
+  question_update(id: $id, data: $data)
+}
+
+mutation DeleteQuestion($id: UUID!) @auth(level: USER) {
+  question_delete(id: $id)
+}
+
+query GetQuestion($id: UUID!) @auth(level: USER) {
+  question(id: $id) {
+    content
+    type
+  }
+}
+
+query ListQuestions @auth(level: USER) {
+  questions {
+    content
+    type
+  }
+}
+
+mutation CreateResponse($data: Response_Data!) @auth(level: USER) {
+  response_insert(data: $data)
+}
+
+mutation UpdateResponse($id: UUID!, $data: Response_Data!) @auth(level: USER) {
+  response_update(id: $id, data: $data)
+}
+
+mutation DeleteResponse($id: UUID!) @auth(level: USER) {
+  response_delete(id: $id)
+}
+
+query GetResponse($id: UUID!) @auth(level: USER) {
+  response(id: $id) {
+    submittedAt
+    subject { name }
+  }
+}
+
+query ListResponses @auth(level: USER) {
+  responses(where: {evaluatorId: {eq_expr: "auth.uid"}}) {
+    submittedAt
+    subject { name }
+  }
+}
+
+mutation CreateUser($data: User_Data!) @auth(level: USER) {
+  user_insert(data: $data)
+}
+
+mutation UpdateUser($data: User_Data!) @auth(level: USER) {
+  user_update(key: {id_expr: "auth.uid"}, data: $data)
+}
+
+mutation DeleteUser @auth(level: USER) {
+  user_delete(key: {id_expr: "auth.uid"})
+}
+
+query GetUser @auth(level: USER) {
+  user(key: {id_expr: "auth.uid"}) {
+    email
+    name
+    department
+  }
+}
+
+query ListUsers @auth(level: USER) {
+  users {
+    name
+    role
+    department
+  }
+}

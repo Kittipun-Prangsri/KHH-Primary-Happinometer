@@ -1,0 +1,33 @@
+type User @table {
+  email: String!
+  role: String!
+  name: String
+  department: String
+}
+
+type Assessment @table {
+  title: String!
+  createdAt: Timestamp!
+  deadline: Timestamp!
+  description: String
+  isActive: Boolean
+}
+
+type Question @table {
+  content: String!
+  type: String!
+  assessment: Assessment!
+}
+
+type Response @table {
+  submittedAt: Timestamp!
+  evaluator: User!
+  assessment: Assessment!
+  subject: User!
+}
+
+type Answer @table {
+  value: String!
+  response: Response!
+  question: Question!
+}
