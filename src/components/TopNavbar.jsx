@@ -1,4 +1,4 @@
-import { LayoutDashboard, ClipboardList, Stethoscope } from 'lucide-react'
+import { LayoutDashboard, ClipboardList } from 'lucide-react'
 import logo from '../assets/logo.png'
 
 export default function TopNavbar({ view, onToggleView }) {
@@ -11,13 +11,7 @@ export default function TopNavbar({ view, onToggleView }) {
             <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white" title="ระบบพร้อมใช้งาน" />
           </div>
           <div className="min-w-0">
-            <div className="flex items-center gap-1.5">
-              <p className="text-sm font-bold text-slate-800 truncate">โรงพยาบาลคลองหาด</p>
-              <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-cyan-50 text-cyan-700 text-[10px] font-semibold border border-cyan-200/60">
-                <Stethoscope className="w-3 h-3 text-cyan-600" />
-                ปฐมภูมิ
-              </span>
-            </div>
+            <p className="text-sm sm:text-base font-bold text-slate-800 truncate">โรงพยาบาลคลองหาด</p>
             <p className="text-[11px] text-slate-500 truncate">กระทรวงสาธารณสุข จังหวัดสระแก้ว</p>
           </div>
         </div>
