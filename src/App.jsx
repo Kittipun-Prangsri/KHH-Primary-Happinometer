@@ -21,6 +21,9 @@ import {
   REST_HOURS_OPTIONS,
 } from './data/questions'
 
+import { db } from './firebase'
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
+
 const DashboardView = lazy(() => import('./components/dashboard/DashboardView'))
 
 const CATEGORY_ORDER = CATEGORIES.map((c) => c.key)
@@ -41,12 +44,18 @@ const CATEGORY_HEADERS = {
   section4: { icon: <i className="bi bi-emoji-smile-fill text-amber-500 text-xl" />, title: 'ความสุขโดยรวม', subtitle: 'คำถามสุดท้ายแล้ว! กรุณาให้คะแนนความสุขโดยรวมของท่านในปัจจุบัน' },
 }
 
-// Mock submission handler — swap this URL/body for your real endpoint
-// (e.g. Supabase REST insert or a Google Apps Script Web App URL).
+// 100% Anonymous Firebase Firestore submission handler
 async function submitHappinometerResponse(payload) {
-  console.log('[Happinometer] Submitting anonymized payload:', payload)
-  await new Promise((resolve) => setTimeout(resolve, 900))
-  return { ok: true }
+  console.log('[Happinometer] Submitting 100% anonymized payload to Firebase Firestore:', payload)
+  const docRef = await addDoc(collection(db, 'happinometer_responses'), {
+    department: payload.department,
+    personnelType: payload.personnelType,
+    answers: payload.answers,
+    submittedAt: serverTimestamp(),
+    isAnonymous: true,
+  })
+  console.log('[Happinometer] Firestore submission successful! Document ID:', docRef.id)
+  return { ok: true, id: docRef.id }
 }
 
 export default function App() {
