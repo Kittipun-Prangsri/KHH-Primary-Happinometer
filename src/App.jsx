@@ -1,4 +1,4 @@
-import { useState, useRef, Suspense, lazy } from 'react'
+import { useState, useRef, useEffect, Suspense, lazy } from 'react'
 import { ChevronLeft, ChevronRight, Loader2, Send } from 'lucide-react'
 import TopNavbar from './components/TopNavbar'
 import HeroBanner from './components/HeroBanner'
@@ -11,6 +11,9 @@ import ChoiceGroup from './components/ChoiceGroup'
 import HappinessSlider from './components/HappinessSlider'
 import ResultScreen from './components/ResultScreen'
 import Footer from './components/Footer'
+import StaffLoginScreen from './components/StaffLoginScreen'
+import PendingApprovalScreen from './components/PendingApprovalScreen'
+import { AuthProvider, useAuth } from './contexts/AuthContext'
 import {
   CATEGORIES,
   ALL_QUESTION_IDS,
@@ -59,6 +62,15 @@ async function submitHappinometerResponse(payload) {
 }
 
 export default function App() {
+  return (
+    <AuthProvider>
+      <AppShell />
+    </AuthProvider>
+  )
+}
+
+function AppShell() {
+  const { user, loading: authLoading, isApprovedStaff, staffProfile, completeProviderLogin, logout } = useAuth()
   const [view, setView] = useState('survey') // 'survey' | 'dashboard'
   const [surveyPhase, setSurveyPhase] = useState('form') // 'form' | 'result'
   const [activeCategory, setActiveCategory] = useState('general')
@@ -173,23 +185,47 @@ export default function App() {
 
   const toggleView = () => setView((v) => (v === 'dashboard' ? 'survey' : 'dashboard'))
 
+  // Returning from the MOPH Provider ID / Health ID redirect lands back here
+  // with ?code=... in the query string — exchange it, then clean the URL.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const code = params.get('code')
+    if (!code) return
+
+    setView('dashboard')
+    completeProviderLogin(code).finally(() => {
+      window.history.replaceState({}, '', window.location.pathname)
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const header = CATEGORY_HEADERS[activeCategory]
 
   return (
     <div className="min-h-screen">
       <div ref={topRef} />
-      <TopNavbar view={view} onToggleView={toggleView} />
+      <TopNavbar view={view} onToggleView={toggleView} staffName={staffProfile?.nameTh} onLogout={logout} />
 
       {view === 'dashboard' ? (
-        <Suspense
-          fallback={
-            <div className="flex items-center justify-center py-24 text-cyan-600">
-              <Loader2 className="w-6 h-6 animate-spin" />
-            </div>
-          }
-        >
-          <DashboardView />
-        </Suspense>
+        authLoading ? (
+          <div className="flex items-center justify-center py-24 text-cyan-600">
+            <Loader2 className="w-6 h-6 animate-spin" />
+          </div>
+        ) : !user ? (
+          <StaffLoginScreen />
+        ) : !isApprovedStaff ? (
+          <PendingApprovalScreen />
+        ) : (
+          <Suspense
+            fallback={
+              <div className="flex items-center justify-center py-24 text-cyan-600">
+                <Loader2 className="w-6 h-6 animate-spin" />
+              </div>
+            }
+          >
+            <DashboardView />
+          </Suspense>
+        )
       ) : surveyPhase === 'result' ? (
         <ResultScreen answers={answers} onRestart={handleRestart} submitted={submitted} />
       ) : (
@@ -382,7 +418,7 @@ export default function App() {
         </div>
       )}
 
-      <Footer />
+      {view === 'survey' && <Footer />}
     </div>
   )
 }
