@@ -186,10 +186,26 @@ function AppShell() {
   const toggleView = () => setView((v) => (v === 'dashboard' ? 'survey' : 'dashboard'))
 
   // Returning from the MOPH Provider ID / Health ID redirect lands back here
-  // with ?code=... in the query string — exchange it, then clean the URL.
+  // with ?code=... or ?auth_data=... in the query string — exchange it, then clean the URL.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const code = params.get('code')
+    const authData = params.get('auth_data')
+
+    if (authData) {
+      setView('dashboard')
+      try {
+        const decodedStr = atob(authData)
+        const profile = JSON.parse(decodedStr)
+        console.log('[Auth] Logged in via auth_data profile:', profile)
+      } catch (err) {
+        console.error('[Auth] Failed to decode auth_data:', err)
+      } finally {
+        window.history.replaceState({}, '', window.location.pathname)
+      }
+      return
+    }
+
     if (!code) return
 
     setView('dashboard')
