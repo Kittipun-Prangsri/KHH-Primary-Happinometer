@@ -27,11 +27,11 @@ export function computeScores(answers) {
 }
 
 export function getHappinessLevel(score10) {
-  if (score10 >= 9) return { label: 'มีความสุขมากที่สุด', color: 'text-emerald-600', emoji: '🤩' }
-  if (score10 >= 7) return { label: 'มีความสุขมาก', color: 'text-teal-600', emoji: '😄' }
-  if (score10 >= 5) return { label: 'มีความสุขปานกลาง', color: 'text-amber-600', emoji: '🙂' }
-  if (score10 >= 3) return { label: 'มีความสุขค่อนข้างน้อย', color: 'text-orange-600', emoji: '😕' }
-  return { label: 'ควรได้รับการดูแลเป็นพิเศษ', color: 'text-rose-600', emoji: '😢' }
+  if (score10 >= 9) return { label: 'มีความสุขมากที่สุด', color: 'text-fuchsia-600', emoji: '🤩', icon: 'bi-emoji-heart-eyes-fill text-fuchsia-500' }
+  if (score10 >= 7) return { label: 'มีความสุขมาก', color: 'text-emerald-600', emoji: '😄', icon: 'bi-emoji-laughing-fill text-emerald-500' }
+  if (score10 >= 5) return { label: 'มีความสุขปานกลาง', color: 'text-teal-600', emoji: '🙂', icon: 'bi-emoji-smile-fill text-teal-500' }
+  if (score10 >= 3) return { label: 'มีความสุขค่อนข้างน้อย', color: 'text-orange-600', emoji: '😕', icon: 'bi-emoji-expressionless-fill text-yellow-500' }
+  return { label: 'ควรได้รับการดูแลเป็นพิเศษ', color: 'text-rose-600', emoji: '😢', icon: 'bi-emoji-tear-fill text-rose-500' }
 }
 
 export function getEncouragement(score10) {

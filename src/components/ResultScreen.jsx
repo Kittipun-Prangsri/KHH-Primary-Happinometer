@@ -22,7 +22,9 @@ export default function ResultScreen({ answers, onRestart, submitted }) {
         </div>
 
         <div className="rounded-2xl bg-white border border-purple-100 shadow-sm p-6 text-center mb-4 animate-pop-in">
-          <p className="text-7xl mb-3">{level.emoji}</p>
+          <div className="text-7xl mb-3 flex items-center justify-center">
+            {level.icon ? <i className={`bi ${level.icon}`} /> : level.emoji}
+          </div>
           <p className={`text-2xl font-bold ${level.color} mb-1`}>{level.label}</p>
           <p className="text-sm text-slate-500 mb-4">
             ระดับความสุขโดยรวม{' '}

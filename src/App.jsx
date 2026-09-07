@@ -38,7 +38,7 @@ const CATEGORY_HEADERS = {
   section1: { icon: '💼', title: 'Happy Work Life (การงานดี)', subtitle: 'ให้คะแนนตั้งแต่ 1 (น้อยที่สุด/ไม่มีเลย) ถึง 5 (มากที่สุด/มีมากที่สุด)' },
   section2: { icon: '🤝', title: 'ความผูกพันต่อองค์กร', subtitle: 'ให้คะแนนตั้งแต่ 1 (น้อยที่สุด) ถึง 5 (มากที่สุด)' },
   section3: { icon: '⚖️', title: 'สมดุลชีวิตกับการทำงาน', subtitle: 'กรุณาเลือกคำตอบที่ตรงกับสภาพการทำงานจริงของท่าน' },
-  section4: { icon: '😊', title: 'ความสุขโดยรวม', subtitle: 'คำถามสุดท้ายแล้ว! กรุณาให้คะแนนความสุขโดยรวมของท่านในปัจจุบัน' },
+  section4: { icon: <i className="bi bi-emoji-smile-fill text-amber-500 text-xl" />, title: 'ความสุขโดยรวม', subtitle: 'คำถามสุดท้ายแล้ว! กรุณาให้คะแนนความสุขโดยรวมของท่านในปัจจุบัน' },
 }
 
 // Mock submission handler — swap this URL/body for your real endpoint
