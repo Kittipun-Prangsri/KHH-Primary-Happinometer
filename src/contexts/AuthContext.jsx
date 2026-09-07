@@ -91,7 +91,7 @@ export function AuthProvider({ children }) {
       const providerSecretKey = 'VzyDtE1SDaOB5FHODg6Cdmr8dN96JG34'
 
       // Step 1: Exchange code for Health ID token
-      const tokenRes = await fetch(`${healthIdUrl}/oauth/token`, {
+      const tokenRes = await fetch(`${healthIdUrl}/api/v1/token`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({

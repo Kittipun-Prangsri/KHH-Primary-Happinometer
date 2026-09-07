@@ -37,7 +37,7 @@ app.get("/auth/health-id/callback", async (req, res) => {
   try {
     // แลก code เป็น Health ID Access Token
     const tokenRes = await axios.post(
-      `${HEALTH_ID_BASE_URL}/oauth/token`,
+      `${HEALTH_ID_BASE_URL}/api/v1/token`,
       new URLSearchParams({
         grant_type: "authorization_code",
         client_id: HEALTH_ID_CLIENT_ID,
