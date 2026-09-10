@@ -51,7 +51,11 @@ app.get("/auth/health-id/callback", async (req, res) => {
       { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
     );
 
-    const healthIdToken = tokenRes.data.access_token;
+    // ตาม คู่มือ Provider ID (หน้า 5) response ห่อด้วย { status, data: {...}, message }
+    const healthIdToken = tokenRes.data?.data?.access_token;
+    if (!healthIdToken) {
+      throw new Error(`Health ID token exchange returned no access_token: ${JSON.stringify(tokenRes.data)}`);
+    }
 
     // แลก Health ID Token เป็น Provider ID Token
     const providerTokenRes = await axios.post(
@@ -64,13 +68,22 @@ app.get("/auth/health-id/callback", async (req, res) => {
       }
     );
 
-    const providerToken = providerTokenRes.data.access_token;
+    // ตาม คู่มือ Provider ID (หน้า 8) response ห่อด้วย { status, message, data: {...} } เช่นกัน
+    const providerToken = providerTokenRes.data?.data?.access_token;
+    if (!providerToken) {
+      throw new Error(`Provider ID token exchange returned no access_token: ${JSON.stringify(providerTokenRes.data)}`);
+    }
 
-    // ดึง Profile บุคลากร
+    // ดึง Profile บุคลากร — ตาม คู่มือ (หน้า 9) ต้องแนบ client-id / secret-key
+    // เป็น header คู่กับ Authorization ไม่งั้นจะได้ 401 "Authentication is required"
     const profileRes = await axios.get(
       `${PROVIDER_ID_BASE_URL}/api/v1/services/profile?moph_center_token=1&position_type=1`,
       {
-        headers: { Authorization: `Bearer ${providerToken}` }
+        headers: {
+          Authorization: `Bearer ${providerToken}`,
+          "client-id": PROVIDER_CLIENT_ID,
+          "secret-key": PROVIDER_SECRET_KEY,
+        }
       }
     );
 
