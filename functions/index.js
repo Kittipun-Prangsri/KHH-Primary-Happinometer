@@ -2,6 +2,9 @@ const functions = require("firebase-functions");
 const express = require("express");
 const axios = require("axios");
 const cors = require("cors");
+const admin = require("firebase-admin");
+
+admin.initializeApp();
 
 const app = express();
 app.use(cors({ origin: true }));
@@ -72,10 +75,32 @@ app.get("/auth/health-id/callback", async (req, res) => {
     );
 
     const profileData = profileRes.data;
+    const profile = profileData.data || profileData;
+
+    // เจ้าหน้าที่ทุกคนที่ยืนยันตัวตนผ่าน Provider ID สำเร็จ จะได้สิทธิ์ admin ทันที
+    // (ไม่มีขั้นตอนรออนุมัติแยกต่างหาก) — uid ใช้ provider_id/account_id ของ MOPH
+    // เป็นตัวระบุตัวตนที่คงที่ในระบบ Firebase Auth ของเรา
+    const uid = String(profile.provider_id || profile.account_id || `provider-${Date.now()}`);
+    const claims = { approved: true, role: "admin" };
+
+    await admin.firestore().collection("khh_staff").doc(uid).set(
+      {
+        profile,
+        ...claims,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    );
+
+    const customToken = await admin.auth().createCustomToken(uid, claims);
 
     // ส่งข้อมูลกลับไปหน้าเว็บหลัก (Base64 URL encode เพื่อความปลอดภัยของข้อมูลภาษาไทย)
-    const encodedProfile = Buffer.from(JSON.stringify(profileData)).toString("base64");
-    res.redirect(`https://khh-primary-happinometer.web.app/?auth_data=${encodedProfile}`);
+    // ใช้ `profile` (ที่แกะ .data ออกมาแล้ว) ไม่ใช่ profileData ทั้ง envelope
+    // เพราะฝั่ง frontend คาดหวัง field แบบแบน (name_th, organization, ...)
+    const encodedProfile = Buffer.from(JSON.stringify(profile)).toString("base64");
+    res.redirect(
+      `https://khh-primary-happinometer.web.app/?auth_data=${encodedProfile}&token=${customToken}`
+    );
 
   } catch (error) {
     const errDetail = (error.response && error.response.data) || error.message;

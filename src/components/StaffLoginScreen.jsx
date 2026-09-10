@@ -1,10 +1,10 @@
-import { AlertCircle, Loader2, ExternalLink } from 'lucide-react'
+import { AlertCircle, KeyRound, Loader2, ExternalLink } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import providerIdLogo from '../assets/provider-id-logo.png'
 import logo from '../assets/logo.png'
 
 export default function StaffLoginScreen() {
-  const { redirectToProviderLogin, exchanging, loginError } = useAuth()
+  const { redirectToProviderLogin, loggingIn, loginError } = useAuth()
 
   return (
     <div className="w-full min-h-[calc(100vh-4rem)] py-4 px-3 sm:px-6 flex items-center justify-center overflow-x-hidden">
@@ -38,20 +38,23 @@ export default function StaffLoginScreen() {
 
           {/* Action Buttons Group */}
           <div className="w-full max-w-[270px] sm:max-w-[300px] flex flex-col gap-2.5 sm:gap-3 items-center">
-            {/* Primary "ลงชื่อเข้าใช้" Button */}
+            {/* Primary "เข้าสู่ระบบด้วย Provider ID" Button */}
             <button
               type="button"
               onClick={redirectToProviderLogin}
-              disabled={exchanging}
-              className="w-full py-2.5 sm:py-3 px-6 rounded-full border-2 border-[#009B4E] text-[#009B4E] hover:bg-emerald-50/80 font-bold text-base sm:text-lg transition-all active:scale-[0.98] disabled:opacity-60 flex items-center justify-center gap-2 shadow-sm"
+              disabled={loggingIn}
+              className="w-full py-2.5 sm:py-3 px-6 rounded-full bg-gradient-to-r from-fuchsia-600 via-pink-600 to-purple-600 text-white hover:shadow-lg hover:shadow-pink-600/30 font-bold text-base sm:text-lg transition-all active:scale-[0.98] disabled:opacity-60 flex items-center justify-center gap-2 shadow-md shadow-pink-600/20"
             >
-              {exchanging ? (
+              {loggingIn ? (
                 <>
-                  <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin text-[#009B4E]" />
+                  <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
                   <span>กำลังเชื่อมต่อ...</span>
                 </>
               ) : (
-                <span>ลงชื่อเข้าใช้</span>
+                <>
+                  <KeyRound className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span>เข้าสู่ระบบด้วย Provider ID</span>
+                </>
               )}
             </button>
 
@@ -59,10 +62,10 @@ export default function StaffLoginScreen() {
             <button
               type="button"
               onClick={redirectToProviderLogin}
-              disabled={exchanging}
+              disabled={loggingIn}
               className="w-full py-2 sm:py-2.5 px-4 rounded-full border border-slate-200/90 bg-white hover:bg-slate-50 text-slate-700 font-medium text-xs sm:text-sm shadow-sm hover:shadow transition-all active:scale-[0.98] disabled:opacity-60 flex items-center justify-center gap-2.5"
             >
-              {exchanging ? (
+              {loggingIn ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin text-[#101b46]" />
                   <span>กำลังเชื่อมต่อ...</span>

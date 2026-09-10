@@ -12,8 +12,8 @@ import HappinessSlider from './components/HappinessSlider'
 import ResultScreen from './components/ResultScreen'
 import Footer from './components/Footer'
 import StaffLoginScreen from './components/StaffLoginScreen'
-import PendingApprovalScreen from './components/PendingApprovalScreen'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
+import { decodeBase64Utf8 } from './utils/base64'
 import {
   CATEGORIES,
   ALL_QUESTION_IDS,
@@ -70,7 +70,7 @@ export default function App() {
 }
 
 function AppShell() {
-  const { user, loading: authLoading, isApprovedStaff, staffProfile, completeProviderLogin, logout } = useAuth()
+  const { staffProfile, isLoggedIn, loginWithProfile, logout } = useAuth()
   const [view, setView] = useState('survey') // 'survey' | 'dashboard'
   const [surveyPhase, setSurveyPhase] = useState('form') // 'form' | 'result'
   const [activeCategory, setActiveCategory] = useState('general')
@@ -186,32 +186,33 @@ function AppShell() {
   const toggleView = () => setView((v) => (v === 'dashboard' ? 'survey' : 'dashboard'))
 
   // Returning from the MOPH Provider ID / Health ID redirect lands back here
-  // with ?code=... or ?auth_data=... in the query string — exchange it, then clean the URL.
+  // with ?auth_data=... (success) or ?error=... (failure) in the query string.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
-    const code = params.get('code')
     const authData = params.get('auth_data')
+    const token = params.get('token')
+    const error = params.get('error')
 
     if (authData) {
       setView('dashboard')
-      try {
-        const decodedStr = atob(authData)
-        const profile = JSON.parse(decodedStr)
-        console.log('[Auth] Logged in via auth_data profile:', profile)
-      } catch (err) {
-        console.error('[Auth] Failed to decode auth_data:', err)
-      } finally {
-        window.history.replaceState({}, '', window.location.pathname)
-      }
+      ;(async () => {
+        try {
+          const profile = JSON.parse(decodeBase64Utf8(authData))
+          await loginWithProfile(profile, token)
+        } catch (err) {
+          console.error('[Auth] Failed to complete Provider ID login:', err)
+          alert('การยืนยันตัวตนล้มเหลว กรุณาลองใหม่อีกครั้ง')
+        } finally {
+          window.history.replaceState({}, '', window.location.pathname)
+        }
+      })()
       return
     }
 
-    if (!code) return
-
-    setView('dashboard')
-    completeProviderLogin(code).finally(() => {
+    if (error) {
+      alert('การยืนยันตัวตนล้มเหลว กรุณาลองใหม่อีกครั้ง')
       window.history.replaceState({}, '', window.location.pathname)
-    })
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -223,14 +224,8 @@ function AppShell() {
       <TopNavbar view={view} onToggleView={toggleView} staffName={staffProfile?.nameTh} onLogout={logout} />
 
       {view === 'dashboard' ? (
-        authLoading ? (
-          <div className="flex items-center justify-center py-24 text-cyan-600">
-            <Loader2 className="w-6 h-6 animate-spin" />
-          </div>
-        ) : !user ? (
+        !isLoggedIn ? (
           <StaffLoginScreen />
-        ) : !isApprovedStaff ? (
-          <PendingApprovalScreen />
         ) : (
           <Suspense
             fallback={
