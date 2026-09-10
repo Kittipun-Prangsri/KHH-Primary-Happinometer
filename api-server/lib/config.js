@@ -17,4 +17,7 @@ module.exports = {
   // (b) this deployment's own /api/auth/health-id/callback URL.
   REDIRECT_URI: required("PROVIDER_REDIRECT_URI"),
   FRONTEND_URL: process.env.FRONTEND_URL || "https://khh-primary-happinometer.web.app",
+  SUPABASE_URL: required("SUPABASE_URL"),
+  SUPABASE_SERVICE_ROLE_KEY: required("SUPABASE_SERVICE_ROLE_KEY"),
+  SUPABASE_ANON_KEY: required("SUPABASE_ANON_KEY"),
 };

@@ -1,5 +1,6 @@
 const axios = require("axios");
-const admin = require("../../../lib/firebaseAdmin");
+const { createClient } = require("@supabase/supabase-js");
+const { providerIdToUuid } = require("../../../lib/providerUuid");
 const {
   HEALTH_ID_BASE_URL,
   HEALTH_ID_CLIENT_ID,
@@ -9,7 +10,17 @@ const {
   PROVIDER_SECRET_KEY,
   REDIRECT_URI,
   FRONTEND_URL,
+  SUPABASE_URL,
+  SUPABASE_SERVICE_ROLE_KEY,
+  SUPABASE_ANON_KEY,
 } = require("../../../lib/config");
+
+const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+  auth: { autoRefreshToken: false, persistSession: false },
+});
+const supabaseAnon = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { autoRefreshToken: false, persistSession: false },
+});
 
 // Callback URL ที่ Health ID ส่ง Authorization Code กลับมา
 module.exports = async (req, res) => {
@@ -70,24 +81,65 @@ module.exports = async (req, res) => {
     const profile = profileRes.data?.data || profileRes.data;
 
     // เจ้าหน้าที่ทุกคนที่ยืนยันตัวตนผ่าน Provider ID สำเร็จ จะได้สิทธิ์ admin ทันที
-    // uid ใช้ provider_id/account_id ของ MOPH เป็นตัวระบุตัวตนที่คงที่
-    const uid = String(profile.provider_id || profile.account_id || `provider-${Date.now()}`);
-    const claims = { approved: true, role: "admin" };
+    const providerId = String(profile.provider_id || profile.account_id || `provider-${Date.now()}`);
+    const uid = providerIdToUuid(providerId);
+    // MOPH's profile response doesn't include an email — synthesize a stable,
+    // unique one so this maps to exactly one Supabase Auth user per provider_id.
+    const syntheticEmail = `${providerId}@khh-staff.invalid`;
+    const appMetadata = { approved: true, role: "admin" };
 
-    await admin.firestore().collection("khh_staff").doc(uid).set(
+    const { error: createError } = await supabaseAdmin.auth.admin.createUser({
+      id: uid,
+      email: syntheticEmail,
+      email_confirm: true,
+      user_metadata: { provider_id: providerId },
+      app_metadata: appMetadata,
+    });
+    if (createError) {
+      const alreadyExists = /already.*registered|already.*exists/i.test(createError.message || "");
+      if (!alreadyExists) throw createError;
+      const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(uid, {
+        app_metadata: appMetadata,
+      });
+      if (updateError) throw updateError;
+    }
+
+    const { error: upsertError } = await supabaseAdmin.from("khh_staff").upsert(
       {
+        id: uid,
+        provider_id: providerId,
         profile,
-        ...claims,
-        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        approved: true,
+        role: "admin",
+        updated_at: new Date().toISOString(),
       },
-      { merge: true }
+      { onConflict: "id" }
     );
+    if (upsertError) throw upsertError;
 
-    const customToken = await admin.auth().createCustomToken(uid, claims);
+    // มินต์ session จริงของ Supabase ให้ frontend โดยไม่ต้องส่งอีเมลจริง —
+    // generateLink สร้าง token แล้ว verifyOtp แลกเป็น access/refresh token ทันที
+    const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+      type: "magiclink",
+      email: syntheticEmail,
+    });
+    if (linkError) throw linkError;
+
+    const { data: sessionData, error: verifyError } = await supabaseAnon.auth.verifyOtp({
+      type: "magiclink",
+      token_hash: linkData.properties.hashed_token,
+      email: syntheticEmail,
+    });
+    if (verifyError) throw verifyError;
+
+    const { access_token: accessToken, refresh_token: refreshToken } = sessionData.session;
 
     // ส่งข้อมูลกลับไปหน้าเว็บหลัก (Base64 URL encode เพื่อความปลอดภัยของข้อมูลภาษาไทย)
     const encodedProfile = Buffer.from(JSON.stringify(profile)).toString("base64");
-    res.redirect(302, `${FRONTEND_URL}/?auth_data=${encodedProfile}&token=${customToken}`);
+    res.redirect(
+      302,
+      `${FRONTEND_URL}/?auth_data=${encodedProfile}&access_token=${accessToken}&refresh_token=${refreshToken}`
+    );
   } catch (error) {
     const errDetail = (error.response && error.response.data) || error.message;
     console.error("Auth Error:", errDetail);

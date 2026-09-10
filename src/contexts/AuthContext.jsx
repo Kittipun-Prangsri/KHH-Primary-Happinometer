@@ -1,6 +1,5 @@
 import { createContext, useContext, useState, useCallback } from 'react'
-import { signInWithCustomToken, signOut as firebaseSignOut } from 'firebase/auth'
-import { auth } from '../firebase'
+import { supabase } from '../supabase'
 
 const AuthContext = createContext(null)
 
@@ -38,7 +37,7 @@ export function AuthProvider({ children }) {
   const [loggingIn, setLoggingIn] = useState(false)
   const [loginError, setLoginError] = useState(null)
 
-  const loginWithProfile = useCallback(async (rawProfile, customToken) => {
+  const loginWithProfile = useCallback(async (rawProfile, accessToken, refreshToken) => {
     const normalized = normalizeStaffProfile(rawProfile)
     try {
       localStorage.setItem(SESSION_KEY, JSON.stringify(normalized))
@@ -48,13 +47,13 @@ export function AuthProvider({ children }) {
     setStaffProfile(normalized)
     setLoginError(null)
 
-    // Signs into Firebase Auth so Firestore security rules (which check
-    // request.auth.token.approved/role) let the dashboard read data.
-    if (customToken) {
+    // Signs into Supabase so RLS policies (which check
+    // auth.jwt() -> app_metadata.approved/role) let the dashboard read data.
+    if (accessToken && refreshToken) {
       try {
-        await signInWithCustomToken(auth, customToken)
+        await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
       } catch (err) {
-        console.error('[Auth] Firebase sign-in with custom token failed:', err)
+        console.error('[Auth] Supabase sign-in failed:', err)
       }
     }
   }, [])
@@ -83,9 +82,9 @@ export function AuthProvider({ children }) {
     }
     setStaffProfile(null)
     try {
-      await firebaseSignOut(auth)
+      await supabase.auth.signOut()
     } catch (err) {
-      console.error('[Auth] Firebase sign-out failed:', err)
+      console.error('[Auth] Supabase sign-out failed:', err)
     }
   }, [])
 

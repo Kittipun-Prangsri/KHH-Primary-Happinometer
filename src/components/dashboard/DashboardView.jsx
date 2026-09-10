@@ -4,27 +4,41 @@ import KPICard from './KPICard'
 import RadarChartCard from './RadarChartCard'
 import PersonnelBarChart from './PersonnelBarChart'
 import LowestQuestionsTable from './LowestQuestionsTable'
-import { db } from '../../firebase'
-import { collection, onSnapshot } from 'firebase/firestore'
-import { computeFirestoreDashboardStats } from '../../utils/dashboardAggregator'
+import { supabase } from '../../supabase'
+import { computeDashboardStats } from '../../utils/dashboardAggregator'
 
 export default function DashboardView() {
-  const [stats, setStats] = useState(() => computeFirestoreDashboardStats([]))
+  const [stats, setStats] = useState(() => computeDashboardStats([]))
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(
-      collection(db, 'happinometer_responses'),
-      (snapshot) => {
-        const docs = snapshot.docs.map((doc) => doc.data())
-        const computed = computeFirestoreDashboardStats(docs)
-        setStats(computed)
-      },
-      (error) => {
-        console.error('[DashboardView] Firestore realtime aggregation error:', error)
-      }
-    )
+    let isMounted = true
 
-    return () => unsubscribe()
+    const loadAndCompute = async () => {
+      const { data, error } = await supabase.from('happinometer_responses').select('department, personnel_type, answers')
+      if (error) {
+        console.error('[DashboardView] Supabase fetch error:', error)
+        return
+      }
+      if (!isMounted) return
+      const docs = data.map((row) => ({
+        department: row.department,
+        personnelType: row.personnel_type,
+        answers: row.answers,
+      }))
+      setStats(computeDashboardStats(docs))
+    }
+
+    loadAndCompute()
+
+    const channel = supabase
+      .channel('happinometer_responses_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'happinometer_responses' }, loadAndCompute)
+      .subscribe()
+
+    return () => {
+      isMounted = false
+      supabase.removeChannel(channel)
+    }
   }, [])
 
   return (
@@ -35,7 +49,7 @@ export default function DashboardView() {
           <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-emerald-500/25 text-emerald-100 border border-emerald-300/40 text-xs font-semibold backdrop-blur-md shadow-inner">
             <Database className="w-3.5 h-3.5 text-emerald-300" />
             <Radio className="w-3 h-3 text-emerald-400 animate-pulse" />
-            100% Real Firebase Firestore ({stats.totalResponses} ตอบแล้ว)
+            100% Real-time Supabase ({stats.totalResponses} ตอบแล้ว)
           </span>
         </h1>
         <p className="text-sm text-fuchsia-50/90 mt-1">
@@ -59,5 +73,3 @@ export default function DashboardView() {
     </div>
   )
 }
-
-

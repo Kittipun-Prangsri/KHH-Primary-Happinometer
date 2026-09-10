@@ -7,7 +7,7 @@ const ALL_SCALE_QUESTIONS = [
   { id: 'q31', text: 'ท่านได้ทำงานตรงตามวุฒิการศึกษา/ความเชี่ยวชาญของท่านมากน้อยเพียงใด', category: 'สมดุลชีวิตกับการทำงาน' },
 ]
 
-export function computeFirestoreDashboardStats(docs) {
+export function computeDashboardStats(docs) {
   if (!docs || docs.length === 0) {
     return {
       totalResponses: 0,

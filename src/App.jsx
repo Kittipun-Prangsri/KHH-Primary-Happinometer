@@ -24,8 +24,7 @@ import {
   REST_HOURS_OPTIONS,
 } from './data/questions'
 
-import { db } from './firebase'
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
+import { supabase } from './supabase'
 
 const DashboardView = lazy(() => import('./components/dashboard/DashboardView'))
 
@@ -47,18 +46,22 @@ const CATEGORY_HEADERS = {
   section4: { icon: <i className="bi bi-emoji-smile-fill text-amber-500 text-xl" />, title: 'ความสุขโดยรวม', subtitle: 'คำถามสุดท้ายแล้ว! กรุณาให้คะแนนความสุขโดยรวมของท่านในปัจจุบัน' },
 }
 
-// 100% Anonymous Firebase Firestore submission handler
+// 100% Anonymous Supabase submission handler
 async function submitHappinometerResponse(payload) {
-  console.log('[Happinometer] Submitting 100% anonymized payload to Firebase Firestore:', payload)
-  const docRef = await addDoc(collection(db, 'happinometer_responses'), {
-    department: payload.department,
-    personnelType: payload.personnelType,
-    answers: payload.answers,
-    submittedAt: serverTimestamp(),
-    isAnonymous: true,
-  })
-  console.log('[Happinometer] Firestore submission successful! Document ID:', docRef.id)
-  return { ok: true, id: docRef.id }
+  console.log('[Happinometer] Submitting 100% anonymized payload to Supabase:', payload)
+  const { data, error } = await supabase
+    .from('happinometer_responses')
+    .insert({
+      department: payload.department,
+      personnel_type: payload.personnelType,
+      answers: payload.answers,
+      is_anonymous: true,
+    })
+    .select('id')
+    .single()
+  if (error) throw error
+  console.log('[Happinometer] Supabase submission successful! Row ID:', data.id)
+  return { ok: true, id: data.id }
 }
 
 export default function App() {
@@ -190,7 +193,8 @@ function AppShell() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const authData = params.get('auth_data')
-    const token = params.get('token')
+    const accessToken = params.get('access_token')
+    const refreshToken = params.get('refresh_token')
     const error = params.get('error')
 
     if (authData) {
@@ -198,7 +202,7 @@ function AppShell() {
       ;(async () => {
         try {
           const profile = JSON.parse(decodeBase64Utf8(authData))
-          await loginWithProfile(profile, token)
+          await loginWithProfile(profile, accessToken, refreshToken)
         } catch (err) {
           console.error('[Auth] Failed to complete Provider ID login:', err)
           alert('การยืนยันตัวตนล้มเหลว กรุณาลองใหม่อีกครั้ง')
